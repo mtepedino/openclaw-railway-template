@@ -1138,6 +1138,42 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
       );
       stream(`[config] gateway.trustedProxies exit=${proxiesResult.code}\n`);
 
+      // Auto-configure hooks so that webhooks work out of the box.
+      stream("[setup] Configuring hooks...\n");
+      const hooksEnabledResult = await runCmd(
+        OPENCLAW_NODE,
+        clawArgs([
+          "config",
+          "set",
+          "--json",
+          "hooks.enabled",
+          "true",
+        ]),
+      );
+      stream(`[config] hooks.enabled=true exit=${hooksEnabledResult.code}\n`);
+
+      const hooksTokenResult = await runCmd(
+        OPENCLAW_NODE,
+        clawArgs([
+          "config",
+          "set",
+          "hooks.token",
+          OPENCLAW_GATEWAY_TOKEN,
+        ]),
+      );
+      stream(`[config] hooks.token exit=${hooksTokenResult.code}\n`);
+
+      const hooksPathResult = await runCmd(
+        OPENCLAW_NODE,
+        clawArgs([
+          "config",
+          "set",
+          "hooks.path",
+          "/hooks",
+        ]),
+      );
+      stream(`[config] hooks.path exit=${hooksPathResult.code}\n`);
+
       if (payload.model?.trim()) {
         stream(`[setup] Setting model to ${payload.model.trim()}...\n`);
         const modelResult = await runCmd(
