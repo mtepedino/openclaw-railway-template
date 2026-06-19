@@ -509,7 +509,12 @@ function requireSetupAuth(req, res, next) {
 
 const app = express();
 app.disable("x-powered-by");
-app.use(express.json({ limit: "1mb" }));
+// Scope body parsing to /setup routes only. Proxied routes (including
+// /hooks/*) must pass the raw body through to the gateway — if Express
+// consumes the stream here, http-proxy forwards Content-Length headers
+// with an empty body and the gateway hangs waiting for bytes that never
+// arrive.
+app.use("/setup", express.json({ limit: "1mb" }));
 
 app.get("/styles.css", (_req, res) => {
   res.sendFile(path.join(process.cwd(), "src", "public", "styles.css"));
